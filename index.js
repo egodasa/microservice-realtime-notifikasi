@@ -6,6 +6,13 @@ var config = {
   jwt_algorithm: ['HS256']
 }
 
+var vapid_keys = {
+  public_key: "BJRUGfhzAZ83unJ0ydmIc3o_XNmFScgXr1Vjr4117b5-T52sAvoM-hvc8r8dO2bfgW3JzFoW0766zvj-xkSOiNo",
+  private_key: "ZNBIXbwaa5pFmIzZjbSRxjS-IlYvBWmO38vSRtAQuA0"
+}
+
+var webpush = require('web-push');
+
 var jwt = require('express-jwt');
 var app = require('express')();
 var http = require('http').createServer(app);
@@ -33,8 +40,29 @@ var io = require('socket.io')(http, {
 });
 
 
+// setting web push
+webpush.setVapidDetails('mailto:webmaster@mail.com', vapid_keys.public_key, vapid_keys.private_key);
 
-// ROUTE UNTUK EMIT EVENT KE CLIENT
+
+// ROUTE UNTUK EMIT EVENT WEB PUSH KE CLIEN
+app.post('/webpush', (req, res) => {
+  const subscription = JSON.parse(req.body.data);
+  const payload = "data";
+
+  webpush.sendNotification(subscription, payload)
+  .then(function(response){
+    res.json({
+      status: true,
+      code: 200,
+      message: "OK"
+    });
+  })
+  .catch(error => {
+    console.error(error.stack);
+  });
+});
+
+// ROUTE UNTUK EMIT EVENT KE CLIENT VIA WEB SOCKET
 app.post('/emit', jwt({
   secret: config.private_key_jwt,
   algorithms: config.jwt_algorithm
