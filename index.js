@@ -45,18 +45,14 @@ webpush.setVapidDetails('mailto:webmaster@mail.com', vapid_keys.public_key, vapi
 
 
 // ROUTE UNTUK EMIT EVENT WEB PUSH KE CLIEN
+// DAFTAR SUBSCRIPTION HARUS DISIMPAN DIDATABASE AGAR KITA BISA MENGIRIM NOTIFIKASI KE SPESIFIK USER
 app.post('/webpush', (req, res) => {
-  const subscription = JSON.parse(req.body.data);
-  const payload = "data";
+  console.log(req.body);
+  const payload = req.body.data;
+  const subscription = JSON.parse(req.body.subscription);
+  res.status(201).json({});
 
   webpush.sendNotification(subscription, payload)
-  .then(function(response){
-    res.json({
-      status: true,
-      code: 200,
-      message: "OK"
-    });
-  })
   .catch(error => {
     console.error(error.stack);
   });
@@ -105,9 +101,6 @@ app.post('/emit', jwt({
 
   // EMIT EVENT KE CLIENT
   io.emit(channel, message);
-
-  console.log("Nama channel: " + channel);
-  console.log("Nama message: " + message);
 
   res.json({
     status: true,
